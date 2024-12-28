@@ -1,9 +1,10 @@
+import 'package:assignment/Authentication/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({Key? key}) : super(key: key);
+  const SignupScreen({super.key});
 
   @override
   _SignupScreenState createState() => _SignupScreenState();
@@ -17,10 +18,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // SignUp Function
   void _signUp() async {
     try {
-      // Validate the input fields
       if (_nameController.text.isEmpty ||
           _emailController.text.isEmpty ||
           _phoneController.text.isEmpty ||
@@ -31,31 +30,32 @@ class _SignupScreenState extends State<SignupScreen> {
         return;
       }
 
-      // Create a new user using Firebase Authentication
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+   
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
 
-      // Get the UID of the signed-up user
       String uid = userCredential.user!.uid;
 
-      // Store user data in Firestore under a collection 'users'
+ 
       await _firestore.collection('users').doc(uid).set({
         'name': _nameController.text,
-        'email': _emailController.text,
-        'phone': _phoneController.text,
+        'email': _emailController.text.trim(),
+        'phone': _phoneController.text.trim(),
         'uid': uid,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // After signing up, navigate to the login screen
-      Navigator.pushReplacementNamed(context, '/login');
+
+      if (mounted) Navigator.pushReplacementNamed(context, '/home');
     } on FirebaseAuthException catch (e) {
-      // Handle error if sign-up fails
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Error occurred')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'Error occurred')),
+        );
+      }
     }
   }
 
@@ -69,24 +69,20 @@ class _SignupScreenState extends State<SignupScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Name field
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Full Name'),
             ),
-            // Email field
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
               keyboardType: TextInputType.emailAddress,
             ),
-            // Phone number field
             TextField(
               controller: _phoneController,
               decoration: const InputDecoration(labelText: 'Phone Number'),
               keyboardType: TextInputType.phone,
             ),
-            // Password field
             TextField(
               controller: _passwordController,
               decoration: const InputDecoration(labelText: 'Password'),
@@ -96,6 +92,16 @@ class _SignupScreenState extends State<SignupScreen> {
             ElevatedButton(
               onPressed: _signUp,
               child: const Text('Sign Up'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (context) {
+                    return const LoginScreen();
+                  },
+                ));
+              },
+              child: const Text('Login'),
             ),
           ],
         ),

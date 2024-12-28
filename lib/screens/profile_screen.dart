@@ -24,17 +24,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _fetchUserData();
   }
 
-  // Fetch user data from Firestore
   void _fetchUserData() async {
     User? user = _auth.currentUser;
 
     if (user != null) {
-      // Get the UID of the currently logged-in user
       String uid = user.uid;
 
       try {
-        // Fetch the user data from Firestore
-        DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
+        DocumentSnapshot doc =
+            await _firestore.collection('users').doc(uid).get();
 
         if (doc.exists) {
           setState(() {
@@ -42,22 +40,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
             email = doc['email'] ?? 'No email';
             phoneNumber = doc['phone'] ?? 'No phone number';
             userId = uid;
-            isLoading = false;  // Set loading to false after data is fetched
+            isLoading = false;
           });
         } else {
           setState(() {
-            isLoading = false;  // Set loading to false if document doesn't exist
+            isLoading = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('User data not found')),
-          );
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('User data not found')),
+            );
+          }
         }
       } catch (e) {
         setState(() {
-          isLoading = false;  // Set loading to false on error
+          isLoading = false;
         });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error fetching data: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _logout() async {
+    try {
+      await _auth.signOut();
+
+      // Navigate to login or welcome screen
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error fetching data: $e')),
+          SnackBar(content: Text('Logout failed: $e')),
         );
       }
     }
@@ -68,7 +88,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: isLoading
-          ? const Center(child: CircularProgressIndicator())  // Show loader while fetching data
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
           : ListView(
               children: [
                 // User Information
@@ -103,6 +125,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     leading: const Icon(Icons.phone, color: Colors.blue),
                     title: Text("Phone: $phoneNumber"),
                   ),
+                ),
+                ElevatedButton(
+                  onPressed: _logout,
+                  child: const Text('Logout'),
                 ),
               ],
             ),

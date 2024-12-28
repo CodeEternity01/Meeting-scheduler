@@ -4,7 +4,6 @@ import 'package:assignment/screens/request_meeting_screen.dart';
 import 'package:assignment/screens/your_meeting_screen.dart';
 import 'package:flutter/material.dart';
 
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -16,10 +15,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int currentIndex = 0;
 
   final List<Widget> _screens = [
-    YourMeetingsScreen(),
-    RequestMeetingScreen(),
-    PendingRequestsScreen(),
-    ProfileScreen()
+    const YourMeetingsScreen(),
+    const RequestMeetingScreen(),
+    const PendingRequestsScreen(),
+    const ProfileScreen()
   ];
 
   final List<String> title = [
